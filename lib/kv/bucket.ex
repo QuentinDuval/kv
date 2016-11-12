@@ -11,7 +11,9 @@ defmodule KV.Bucket do
   Gets a value from the `bucket` by `key`.
   """
   def get(bucket, key) do
+    # Process.sleep(1000) # Happens in the client
     Agent.get(bucket, fn dict ->
+      # Process.sleep(1000) # Happens in the server
       Map.get(dict, key)
     end)
   end
