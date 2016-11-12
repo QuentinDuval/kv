@@ -9,7 +9,8 @@ defmodule KV.Supervisor do
     # Each worker will monitor a registry
     # It will spawn this one via KV.Registry.start_link(KV.Registry)
     children = [
-      worker(KV.Registry, [KV.Registry])
+      worker(KV.Registry, [KV.Registry]),
+      supervisor(KV.Bucket.Supervisor, [])
     ]
     supervise(children, strategy: :one_for_one)
   end
