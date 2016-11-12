@@ -40,24 +40,51 @@ defmodule KV.Registry do
   ## Server Callbacks (Implementation details)
   ## --------------------------------------------------
 
+  @doc """
+  Initialize the server state (returned as 2nd argument)
+  """
   def init(:ok) do
-    {:ok, %{}}
+    names = %{}
+    refs = %{}
+    {:ok, {names, refs}}
   end
 
-  def handle_call({:lookup, name}, _from, names) do
-    # Returns a tuple with the new state as 3rd argument
-    # The reply is the second argument of the tuple
-    {:reply, Map.fetch(names, name), names}
+  @doc """
+  Returns a tuple with the new state as 3rd argument
+  The reply is the second argument of the tuple
+  """
+  def handle_call({:lookup, name}, _from, {names, _} = state) do
+    {:reply, Map.fetch(names, name), state}
   end
 
-  def handle_cast({:create, name}, names) do
-    # Returns a tuple with the new state as second element
+  @doc """
+  Requires no answer:
+  Returns a tuple with the new state as second element
+  """
+  def handle_cast({:create, name}, {names, refs} = state) do
     if Map.has_key?(names, name) do
-      {:noreply, names}
+      {:noreply, state}
     else
-      {:ok, bucket} = KV.Bucket.start_link
-      {:noreply, Map.put(names, name, bucket)} #put returns a new instance
+      {:ok, bucketPid} = KV.Bucket.start_link
+      ref = Process.monitor(bucketPid)
+      refs = Map.put(refs, ref, name)
+      names = Map.put(names, name, bucketPid)
+      {:noreply, {names, refs}}
     end
+  end
+
+  @doc """
+  Handles the monitoring information (as well as direct messages)
+  Returns the new state as second element.
+  """
+  def handle_info({:DOWN, ref, :process, _pid, _reason}, {names, refs}) do
+    {name, refs} = Map.pop(refs, ref)
+    names = Map.delete(names, name)
+    {:noreply, {names, refs}}
+  end
+
+  def handle_info(_msg, state) do
+    {:noreply, state}
   end
 
 end
