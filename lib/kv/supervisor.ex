@@ -12,6 +12,7 @@ defmodule KV.Supervisor do
       worker(KV.Registry, [KV.Registry]),
       supervisor(KV.Bucket.Supervisor, [])
     ]
-    supervise(children, strategy: :one_for_one)
+    # Check: http://elixir-lang.org/getting-started/mix-otp/supervisor-and-application.html
+    supervise(children, strategy: :rest_for_one)
   end
 end
