@@ -1,6 +1,7 @@
 # KV
 
-**TODO: Add description**
+Following the tutorial available here:
+http://elixir-lang.org/getting-started/mix-otp/agent.html
 
 ## Installation
 
@@ -21,4 +22,3 @@ If [available in Hex](https://hex.pm/docs/publish), the package can be installed
       [applications: [:kv]]
     end
     ```
-
