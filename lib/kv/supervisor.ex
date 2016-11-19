@@ -6,13 +6,15 @@ defmodule KV.Supervisor do
   end
 
   def init(:ok) do
-    # Each worker will monitor a registry
-    # It will spawn this one via KV.Registry.start_link(KV.Registry)
     children = [
       worker(KV.Registry, [KV.Registry]),
       supervisor(KV.Bucket.Supervisor, [])
     ]
-    # Check: http://elixir-lang.org/getting-started/mix-otp/supervisor-and-application.html
+    # The :rest_for_one allows to kill the buckets if the registry crashes
+    # The order is quite important:
+    # - children are spawned from first to last
+    # - children are restarted and crashes from first to last
+    # It is especially important if there are dependencies between the children
     supervise(children, strategy: :rest_for_one)
   end
 end
